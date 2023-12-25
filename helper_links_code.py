@@ -38,7 +38,7 @@ def main():
             elif event == 'Generate Source':
                 response = requests.get("https://raw.githubusercontent.com/Scavix/link-handler/main/helper_links_code.py")
                 if response.status_code == 200:
-                    f = open("helper_links.py", "w")
+                    f = open("helper_links_code.py", "w")
                     f.write(response.text)
                     f.close()
                     sg.popup("Done")
