@@ -45,7 +45,7 @@ def main():
                 else:
                     sg.popup("Web site does not exist or is not reachable")
             elif event == 'Build Script':
-                response = requests.get("https://scavix.github.io/helper_links_build_script.bat")
+                response = requests.get("https://raw.githubusercontent.com/Scavix/link-handler/main/helper_links_build_script.bat")
                 if response.status_code == 200:
                     f = open("helper_links_build_script.bat", "w")
                     f.write(response.text)
