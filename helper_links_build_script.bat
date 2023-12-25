@@ -1,1 +1,1 @@
-pyinstaller helper_links.py --noconsole --onefile
+pyinstaller helper_links_code.py --noconsole --onefile
