@@ -5,8 +5,10 @@ from datetime import datetime
 import os.path
 
 def main():
-    outstrings = ["","",""]
-    cachefiles = ["cachegen.tmp","cachecs.tmp","cachemath.tmp"]
+    outstrings = []
+    cachefiles = ["cachegen.tmp","cachecs.tmp","cachemath.tmp","cachecsutils.tmp"]
+    for i in cachefiles:
+        outstrings.append("")
     for cache in range(len(cachefiles)):
         try:
             if os.path.isfile(cachefiles[cache]):
@@ -17,10 +19,11 @@ def main():
         except Exception as e:
             print(e)
             pass
-    layout = [  [sg.Text('Enter URL'), sg.InputText(key='-URL-', default_text='Insert URL here'), sg.Text('Enter Category'), sg.Combo(values=('Generic', 'Computer sciences', 'Mathematics'), default_value='Generic', readonly=True, k='-COMBO-')],
+    layout = [  [sg.Text('Enter URL'), sg.InputText(key='-URL-', default_text='Insert URL here'), sg.Text('Enter Category'), sg.Combo(values=('Generic', 'Computer sciences', 'Mathematics', 'Computer utils'), default_value='Generic', readonly=True, k='-COMBO-'), sg.Checkbox("Bold", key="-RADIO-", default=False)],
                 [sg.Multiline(expand_x=True, expand_y=True, key='-OUTPUTGEN-', default_text=outstrings[0])],
                 [sg.Multiline(expand_x=True, expand_y=True, key='-OUTPUTCS-', default_text=outstrings[1])],
                 [sg.Multiline(expand_x=True, expand_y=True, key='-OUTPUTMATH-', default_text=outstrings[2])],
+                [sg.Multiline(expand_x=True, expand_y=True, key='-OUTPUTCSUTILS-', default_text=outstrings[3])],
                 [sg.Button('Add'), sg.Button('Generate Source'), sg.Button('Build Script'), sg.Button('Exit and Save'), sg.Button('Exit')]]
 
     window = sg.Window('Url generate', layout, element_justification='c', finalize=True, size=(800, 300))
@@ -56,6 +59,10 @@ def main():
             elif event == 'Add':
                 url=window['-URL-'].get()
                 category=window['-COMBO-'].get()
+                radio=window['-RADIO-'].get()
+                if url == "" or url == "Enter URL":
+                    sg.popup("URL is empty")
+                    continue
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
                 }
@@ -63,14 +70,14 @@ def main():
                 if response.status_code == 200:
                     if response.headers['Content-Type'].__contains__('application/pdf'):
                         title = url.split('/')[-1]
-                        outstrings[get_i_from_cat(category)] += "<li><a href = \"" + str(url).strip() + "\">" + str(title) + "</a></li>\n"
+                        outstrings[get_i_from_cat(category)] += "<li><a href = \"" + str(url).strip() + "\">" + ("<b>" if radio else "") + str(title) + ("</b>" if radio else "") + "</a></li>\n"
                     elif not response.headers['Content-Type'].__contains__('text/html'):
                         sg.popup("Web site is not HTML\n"+response.status_code)
                         continue
                     else:
                         soup = BeautifulSoup(response.content, 'html.parser')
                         title = soup.title.string
-                        outstrings[get_i_from_cat(category)] += "<li><a href = \"" + str(url).strip() + "\">" + str(title) + "</a></li>\n"
+                        outstrings[get_i_from_cat(category)] += "<li><a href = \"" + str(url).strip() + "\">" + ("<b>" if radio else "") + str(title) + ("</b>" if radio else "") + "</a></li>\n"
                         save_to(cachefiles[get_i_from_cat(category)],outstrings[get_i_from_cat(category)])
                 else:
                     sg.popup("Web site does not exist or is not reachable\n"+response.status_code+"\n"+response.reason+"\n"+response.text)
@@ -78,11 +85,11 @@ def main():
                 window['-OUTPUTGEN-'].update(value=outstrings[0])
                 window['-OUTPUTCS-'].update(value=outstrings[1])
                 window['-OUTPUTMATH-'].update(value=outstrings[2])
+                window['-OUTPUTCSUTILS-'].update(value=outstrings[3])
                 window['-URL-'].update(value="")
     except:
-        save_to(cachefiles[0],outstrings[0])    
-        save_to(cachefiles[1],outstrings[1])
-        save_to(cachefiles[2],outstrings[2])
+        for i in range(len(outstrings)):
+            save_to(cachefiles[i],outstrings[i])
         sg.popup("Found exception, cache saved")
     window.close()
     
@@ -98,6 +105,8 @@ def get_i_from_cat(cat):
         return 1
     elif cat == "Mathematics":
         return 2
+    elif cat == "Computer utils":
+        return 3
     else:
         return 0
 
